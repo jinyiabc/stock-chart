@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "alphavantage": "^1.1.1",
     "body-parser": "~1.18.2",
     "connect-ensure-login": "^0.1.1",
     "cookie-parser": "~1.4.3",
@@ -19,6 +20,9 @@
     "passport": "^0.4.0",
     "passport-github": "^1.1.0",
     "redis": "^2.8.0",
-    "serve-favicon": "~2.4.5"
+    "serve-favicon": "~2.4.5",
+    "socket.io": "^2.0.4",
+    "socket.io-emitter": "^3.1.1",
+    "socket.io-redis": "^5.2.0"
   }
 }

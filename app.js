@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var api = require('./routes/api');
+var stock = require('./routes/stock');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
@@ -25,6 +26,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use('/public', express.static(process.cwd() + '/public'));
+app.use('/app', express.static(process.cwd() + '/app'));
 
 
 // uncomment after placing your favicon in /public
@@ -47,10 +49,14 @@ app.use(passport.session());
 var path = process.cwd();
 
 
-
-app.get('/', function(req, res, next) {
-  res.render('index');
+app.get('/' ,function(req, res) {
+  res.sendFile(path + '/app/index.html');
 });
+
+// app.get('/', function(req, res, next) {
+//   res.render('index');
+// });
+
 app.use('/home', function(req,res,next){
   res.render('home',{user: req.user})
 });
@@ -77,7 +83,7 @@ app.route('/auth/github/callback')
 
 // initialize the routes
 app.use('/api',api);
-
+app.use('/stock',stock);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

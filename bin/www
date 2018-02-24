@@ -29,11 +29,69 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-var client = require('redis').createClient(process.env.REDIS_URL);
-client.on('connect', function() {
-    console.log('connected');
+// var pub = require('redis').createClient(process.env.REDIS_URL);
+// pub.on('connect', function() {
+//     console.log('connected');
+// });
+// pub.publish("temp-reading:living-room", "37.0");
+//
+// var sub = require('redis').createClient(process.env.REDIS_URL);
+// sub.on("message", function(channel, message) {
+//   console.log("A temperature of " + message + " was read.");
+//   client.incr("temp-count");
+// });
+//
+// sub.subscribe("temp-reading:living-room");
+// var subscriber = require("redis").createClient(process.env.REDIS_URL)
+//
+// subscriber.on("message", function(channel, message) {
+//   console.log("A price of daily stock:", message );
+//   // client.incr("temp-count");
+// });
+//
+// subscriber.subscribe("stock:daily");
+
+var redis = require('socket.io-redis');
+var io = require('socket.io')(server);
+var io_redis = io.adapter(redis({
+    host: '127.0.0.1',
+    port: 6379
+}));
+
+// Custom namespaces
+var chat = io_redis
+  .of('/chat')
+  .on('connection', (socket) => {
+
+    debug('made socket connection', socket.id);
+    socket.on('disconnect', function(){
+      console.log('user disconnected');
+    });
+
+    // Handle chat event
+    socket.on('chat', function(data,callback){
+      // the client passes 'callback' as a function. When we invoke the callback on the server
+      // the code on the client side will run
+        responseData = 'Acknoledgement:'+ JSON.stringify(data,null,4);
+        callback(responseData);
+        chat.emit('chat', data);
+    });
+    // Handle typing event
+    socket.on('typing', function(data){
+        socket.broadcast.emit('typing', data);
+
+    });
 });
 
+var time = io_redis
+    .on('connection',(socket) => {
+
+      socket.on('ack', function (data,cb) {
+        responseData = 'Acknowledgement:' + typeof(data) + data;
+       cb(responseData);
+      });
+
+    });
 /**
  * Normalize a port into a number, string, or false.
  */
