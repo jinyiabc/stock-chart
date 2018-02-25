@@ -17,8 +17,10 @@ router.get('/daily',function(req,res,next){
     .then(data => {
     // console.log(data);
     // client.publish("stock:daily", data);
-    io.emit('time', data["Meta Data"]["1. Information"]);
-    res.send(data);
+    const polished = alpha.util.polish(data);
+    console.log(polished['data']);
+    io.emit('time', polished['data']);
+    res.send(polished['data']);
   });
 });
 
