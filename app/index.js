@@ -50,7 +50,7 @@ $(function () {
     var newColor = window.chartColors[colorName];
 
     var newDataset = {
-      label: data['meta']['symbol'],  // eg. MSFT
+      label: data['meta']['symbol'].toUpperCase(),  // eg. MSFT
       backgroundColor: newColor,
       borderColor: newColor,
       data: ClosePrices,
@@ -126,7 +126,7 @@ window.onload = function() {
       var colorName = colorNames[i];
       var newColor = window.chartColors[colorName];
       config.data.datasets[i] = {
-                                  label: data[i]['symbol'],  // eg. MSFT
+                                  label: data[i]['symbol'].toUpperCase(),  // eg. MSFT
                                   backgroundColor: newColor,
                                   borderColor: newColor,
                                   data: data[i]['ClosePrices'],
@@ -156,7 +156,7 @@ window.onload = function() {
 document.getElementById('addDataset').addEventListener('click', function() {
   console.log('Button was clicked.');
 if($('#newStock').val()){
-  var symbol = $('#newStock').val();
+  var symbol = $('#newStock').val().toUpperCase();
   console.log(symbol);
   $.get(`http://localhost:3000/stock/daily/${symbol}`,function(data){
      console.log('Add new stock:',data['meta']['symbol']);
