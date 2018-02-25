@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('nightlife-express:server');
 var http = require('http');
-
+var Stock = require('../models/stocks')
 /**
  * Get port from environment and store in Express.
  */
@@ -90,6 +90,26 @@ var time = io_redis
         responseData = 'Acknowledgement:' + typeof(data) + data;
        cb(responseData);
       });
+
+      socket.on('addstock',function(data){
+        console.log('add stock to MongoDB');
+       // Stock.insertMany(data).then(function(){
+       //   Storck.find({}).then(function(result){
+       //     console.log(result);
+       //   });
+       // })
+       const query = { 'symbol':data['symbol']}
+       const update = {
+                       $set:{'ClosePrices':data['ClosePrices'],'labels':data['labels']}
+                     };
+       Stock.updateOne(query,update,{upsert: true}).then(function(){   //upsert: bool - creates the object if it doesn't exist. defaults to false.
+
+         Stock.findOne(query).then(function(stock){
+           console.log('requery on DB:');
+         })
+       });
+
+      })
 
     });
 /**
