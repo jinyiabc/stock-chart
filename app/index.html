@@ -6,6 +6,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
         <script src="/app/utils.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
         <link href="/app/styles.css" rel="stylesheet" />
     </head>
@@ -17,14 +18,23 @@
         	<br>
         	<br>
         	<button id="GETDATA">GETDATA</button>
-        	<button id="addDataset">Add Dataset</button>
         	<button id="removeDataset">Remove Dataset</button>
         	<button id="addData">Add Data</button>
         	<button id="removeData">Remove Data</button>
 
 
         <div>
-          <ul id="stockList"></ul>
+          <ul id="stockList">
+          </ul>
+
+          <div class="input-group">
+             <input id="newStock" type="text" class="form-control" placeholder="Search for...">
+             <span class="input-group-btn">
+               <button id="addDataset" class="btn btn-default" type="button">Go!</button>
+             </span>
+           </div><!-- /input-group -->
+         </div><!-- /.col-lg-6 -->
+
         </div>
         <div class="">
           <ul id="times"></ul>
@@ -34,4 +44,5 @@
     </body>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/app/index.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </html>

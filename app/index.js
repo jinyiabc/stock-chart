@@ -31,6 +31,52 @@ $(function () {
       feedback.innerHTML = '<p><em>' + data + ' is typing a message...</em></p>';
   });
 
+
+  time.on('time', function (data) {
+    // Emit acknowledgement
+    time.emit('ack', data ,function(response){
+      console.log(response);
+    });
+
+    var ClosePrices = [];
+    var labels = [];
+    for (key in data['data']){
+      ClosePrices.push(+data['data'][`${key}`]['close']);
+      labels.push(key.slice(0,10));
+    }
+
+    var colorNames = Object.keys(window.chartColors);
+    var colorName = colorNames[config.data.datasets.length % colorNames.length];
+    var newColor = window.chartColors[colorName];
+
+    var newDataset = {
+      label: data['meta']['symbol'],  // eg. MSFT
+      backgroundColor: newColor,
+      borderColor: newColor,
+      data: ClosePrices,
+      fill: false,
+    };
+  // new symbol => close prices & labels
+    config.data.datasets = (config.data.datasets).concat(newDataset);
+    config.data.labels = labels;
+    // console.log(config.data.labels);
+    // var ctx = document.getElementById('canvas').getContext('2d');
+    // new Chart(ctx, config);
+    console.log(typeof window.myLine);
+    if (typeof window.myLine != "undefined") {
+      window.myLine.update();
+      } else {
+        var ctx = document.getElementById('canvas').getContext('2d');
+        window.newLine = new Chart(ctx, config);
+      }
+
+
+    time.emit('addstock',{"symbol":data['meta']['symbol']
+                          ,"labels":labels
+                          ,"ClosePrices": ClosePrices });
+
+  });
+
 // Initialize Chart configuration.
 var config = {
   type: 'line',
@@ -97,85 +143,47 @@ window.onload = function() {
 
   });
 };
+//
+// document.getElementById('GETDATA').addEventListener('click', function() {
+//   config.data.datasets.forEach(function(dataset) {
+//     dataset.data = dataset.data.map(function() {
+//       return randomScalingFactor();
+//     });
+//   });
+//   window.myLine.update();
+// });
 
-time.on('time', function (data) {
-  // Emit acknowledgement
-  time.emit('ack', data ,function(response){
-    console.log(response);
-  });
-
-  var ClosePrices = [];
-  var labels = [];
-  for (key in data['data']){
-    ClosePrices.push(+data['data'][`${key}`]['close']);
-    labels.push(key.slice(0,10));
-  }
-  var newDataset = {
-    label: data['meta']['symbol'],  // eg. MSFT
-    backgroundColor: window.chartColors.red,
-    borderColor: window.chartColors.red,
-    data: ClosePrices,
-    fill: false,
-  };
-// new symbol => close prices & labels
-  config.data.datasets = (config.data.datasets).concat(newDataset);
-  config.data.labels = labels;
-  // console.log(config.data.labels);
-  // var ctx = document.getElementById('canvas').getContext('2d');
-  // new Chart(ctx, config);
-  console.log(typeof window.myLine);
-  if (typeof window.myLine != "undefined") {
-    window.myLine.update();
-    } else {
-      var ctx = document.getElementById('canvas').getContext('2d');
-      window.newLine = new Chart(ctx, config);
-    }
-
-
-  time.emit('addstock',{"symbol":data['meta']['symbol']
-                        ,"labels":labels
-                        ,"ClosePrices": ClosePrices });
-
-});
-
-// $('#times').append($('<li>').text(data));
-
-
-document.getElementById('GETDATA').addEventListener('click', function() {
-  config.data.datasets.forEach(function(dataset) {
-    dataset.data = dataset.data.map(function() {
-      return randomScalingFactor();
-    });
-  });
-  window.myLine.update();
-});
-var colorNames = Object.keys(window.chartColors);
 document.getElementById('addDataset').addEventListener('click', function() {
-  var colorName = colorNames[config.data.datasets.length % colorNames.length];
-  var newColor = window.chartColors[colorName];
-  var newDataset = {
-    label: 'Dataset ' + config.data.datasets.length,
-    backgroundColor: newColor,
-    borderColor: newColor,
-    data: [],
-    fill: false
-  };
-  for (var index = 0; index < config.data.labels.length; ++index) {
-    newDataset.data.push(randomScalingFactor());
-  }
-  config.data.datasets.push(newDataset);
-  window.myLine.update();
+  console.log('Button was clicked.');
+if($('#newStock').val()){
+  var symbol = $('#newStock').val();
+  console.log(symbol);
+  $.get(`http://localhost:3000/stock/daily/${symbol}`,function(data){
+     console.log('Add new stock:',data['meta']['symbol']);
+  });
+}
+  // var newDataset = {
+  //   label: 'Dataset ' + config.data.datasets.length,
+  //   backgroundColor: newColor,
+  //   borderColor: newColor,
+  //   data: [],
+  //   fill: false
+  // };
+  // for (var index = 0; index < config.data.labels.length; ++index) {
+  //   newDataset.data.push(randomScalingFactor());
+  // }
+  // config.data.datasets.push(newDataset);
+  // window.myLine.update();
 });
-document.getElementById('addData').addEventListener('click', function() {
-  if (config.data.datasets.length > 0) {
-    var month = MONTHS[config.data.labels.length % MONTHS.length];
-    config.data.labels.push(month);
-    config.data.datasets.forEach(function(dataset) {
-      dataset.data.push(randomScalingFactor());
-    });
-    window.myLine.update();
-  }
-});
+// document.getElementById('addData').addEventListener('click', function() {
+//   if (config.data.datasets.length > 0) {
+//     config.data.labels.push(month);
+//     config.data.datasets.forEach(function(dataset) {
+//       dataset.data.push(randomScalingFactor());
+//     });
+//     window.myLine.update();
+//   }
+// });
 document.getElementById('removeDataset').addEventListener('click', function() {
   config.data.datasets.splice(0, 1);
   window.myLine.update();
