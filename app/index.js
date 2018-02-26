@@ -6,32 +6,54 @@ $(function () {
   var time = io();
   // var subscriber = require("redis").createClient(process.env.REDIS_URL)
 
-  $('#message').keypress(function(){
-    typing.emit('typing', handle.value);
-  });
-  $('#send').click(function(){
-    // Now that we are connected let's send our test call with callback
-    chat.emit('chat', {
-        message: message.value,
-        handle: handle.value
-    }, function(response){
-      console.log(response);
-    });
-    message.value = "";
-  })
+  // $('#message').keypress(function(){
+  //   typing.emit('typing', handle.value);
+  // });
+  // $('#send').click(function(){
+  //   // Now that we are connected let's send our test call with callback
+  //   chat.emit('chat', {
+  //       message: message.value,
+  //       handle: handle.value
+  //   }, function(response){
+  //     console.log(response);
+  //   });
+  //   message.value = "";
+  // })
 
 
   // Listen for events
-  chat.on('chat', function(data){
-      feedback.innerHTML = '';
-      output.innerHTML += '<p><strong>' + data.handle + ': </strong>' + data.message + '</p>';
-  });
+  // chat.on('chat', function(data){
+  //     feedback.innerHTML = '';
+  //     output.innerHTML += '<p><strong>' + data.handle + ': </strong>' + data.message + '</p>';
+  // });
 
   typing.on('typing', function(data){
       feedback.innerHTML = '<p><em>' + data + ' is typing a message...</em></p>';
   });
 
+  time.on('getdata',function(data){
+    var symbol = data;
+    var datasets = window.newLine.data.datasets.filter(dataset => dataset.label != symbol);
+    window.newLine.data.datasets = datasets;
+    window.newLine.update();
 
+    // var elements = '<li class="list-group-item list-group-item-success">'+`${symbol}`+
+    //                  `<a href="#" id="${symbol}" class="btn">` +
+    //                      '<span class="glyphicon glyphicon-remove">' + '</span>' +
+    //                  '</a>'+
+    //                '</li>';
+    // // $('#stockList').remove($(elements));
+    // $('#stockList').click(function(){
+    //   $(elements).remove();
+    // })
+
+{/* <li class="list-group-item list-group-item-success">AAPL<a href="#" id="AAPL" class="btn"><span class="glyphicon glyphicon-remove"></span></a></li> */}
+
+  });
+
+// Receive OUTSOURCE from calling /stock/daily/:symbol
+// Then emit to server.
+// Then server emit to all clients.
   time.on('time', function (data) {
     // Emit acknowledgement
     time.emit('ack', data ,function(response){
@@ -62,15 +84,14 @@ $(function () {
     // console.log(config.data.labels);
     // var ctx = document.getElementById('canvas').getContext('2d');
     // new Chart(ctx, config);
-    console.log(typeof window.myLine);
-    if (typeof window.myLine != "undefined") {
-      window.myLine.destroy();
-      var ctx = document.getElementById('canvas').getContext('2d');
-     window.myLine =  new Chart(ctx, config);
+    console.log(typeof window.newLine);
+    if (typeof window.newLine != "undefined") {
+      window.newLine.data.datasets = config.data.datasets;
+      window.newLine.update();
 
       } else {
         var ctx = document.getElementById('canvas').getContext('2d');
-       window.myLine =  new Chart(ctx, config);
+       window.newLine =  new Chart(ctx, config);
       // getData();
       }
 
@@ -123,9 +144,8 @@ var config = {
 window.onload = getData();
 
 function getData() {
-  // $.get('http://localhost:3000/stock/daily',function(data){
+  $.get('http://localhost:3000/stock/daily',function(data){
   //   console.log(data);
-    time.on('dataInitiation',function(data){
 
 
 
@@ -155,9 +175,9 @@ function getData() {
     console.log('Loading from DB:',config);
     var ctx = document.getElementById('canvas').getContext('2d');
     window.newLine = new Chart(ctx, config);
+    console.log(window.newLine);
 
-  });  // End of socket data initialization.
-  // });
+  });
 };
 
 // Add new stock to Socket
@@ -183,7 +203,21 @@ $('.list-group').on('click','span', function(event) {
     var spanElement = event.target;
     var symbol = $(spanElement).parent().attr("id");
 
-    time.emit('delete', {test:'test'}, function(response){
+    var datasets = window.newLine.data.datasets.filter(dataset => dataset.label != symbol);
+    window.newLine.data.datasets = datasets;
+    console.log(window.newLine.data.datasets);
+
+    window.newLine.update();
+
+    // var elements = '<li class="list-group-item list-group-item-success">'+`${symbol}`+
+    //                  `<a href="#" id="${symbol}" class="btn">` +
+    //                      '<span class="glyphicon glyphicon-remove">' + '</span>' +
+    //                  '</a>'+
+    //                '</li>';
+    // $(elements,'#stockList').remove();
+
+
+    time.emit('delete', symbol, function(response){
       console.log(response);
     });
 

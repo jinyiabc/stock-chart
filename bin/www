@@ -8,6 +8,9 @@ var app = require('../app');
 var debug = require('debug')('nightlife-express:server');
 var http = require('http');
 var Stock = require('../models/stocks');
+var Latest = require('../models/latest');
+var async = require('async');
+const alpha = require('alphavantage')({ key: '2LSUS7X2UPKUPU2A' });
 var request = require('request');
 /**
  * Get port from environment and store in Express.
@@ -34,34 +37,56 @@ setInterval( function(){
   request
   .get(process.env.APP_URL+'stock/daily')
   .on('response', function(response) {
+
+
     console.log(response.statusCode) // 200
     console.log(response.headers['content-type']) // 'image/png'
+
+    Stock.find({}).then(function(data){
+      // console.log(data);
+      var length = data.length
+      var stockNames = []
+      data.forEach(function(item){
+        stockNames.push(item.symbol)
+      });
+      console.log(stockNames);   //[ 'TWTR', 'PTC' ]
+      var interval='60min'
+      var datatype='json'
+      var outputsize = 'compact'
+
+      async.map(stockNames,function(name,callback){
+      var symbol = name;
+      alpha.data.daily(symbol, outputsize, datatype, interval)
+        .then(data => {
+        var polished = alpha.util.polish(data);
+        var ClosePrices = [];
+        var labels = [];
+
+        for (key in polished['data']){
+          ClosePrices.push(+polished['data'][`${key}`]['close']);
+          labels.push(key.slice(0,10));
+        }
+
+        var result = {"symbol":symbol,
+                     "labels":labels,
+                     "ClosePrices": ClosePrices };
+        // console.log(result);
+        callback(null,result);
+      });
+      },function(err,results){
+        console.log(results);
+
+        Stock.remove({}, function(err) {
+           console.log('historical collection removed');
+           Stock.insertMany(results);
+        });
+      });   // End of async
+    });   // End of Stock find
   })
   // console.log('test for occurence');
-}, 1000*60);
+}, 1000*60*60);   // Alpha API update data every 60min
 
 
-// var pub = require('redis').createClient(process.env.REDIS_URL);
-// pub.on('connect', function() {
-//     console.log('connected');
-// });
-// pub.publish("temp-reading:living-room", "37.0");
-//
-// var sub = require('redis').createClient(process.env.REDIS_URL);
-// sub.on("message", function(channel, message) {
-//   console.log("A temperature of " + message + " was read.");
-//   client.incr("temp-count");
-// });
-//
-// sub.subscribe("temp-reading:living-room");
-// var subscriber = require("redis").createClient(process.env.REDIS_URL)
-//
-// subscriber.on("message", function(channel, message) {
-//   console.log("A price of daily stock:", message );
-//   // client.incr("temp-count");
-// });
-//
-// subscriber.subscribe("stock:daily");
 
 var redis = require('socket.io-redis');
 var io = require('socket.io')(server);
@@ -104,16 +129,16 @@ var time = io_redis
       });
 
       socket.on('delete', function (data,cb) {
-
-        // socket.broadcast.emit('getdata', data);
+        console.log(data);  // ok
+        time.emit('getdata', data);
         responseData = 'Acknowledgement:' + typeof(data) + data;
         cb(responseData);
       });
 
 
       socket.on('addstock',function(data){
-
-             // socket.broadcast.emit('all',somedata);
+        // Broadcast to all agents( API have broadcasted)
+             // socket.broadcast.emit('all',data);
 
              console.log('add stock to MongoDB');
              const query = { 'symbol':data['symbol']}
@@ -125,7 +150,16 @@ var time = io_redis
                Stock.findOne(query).then(function(stock){
                  console.log('requery on DB:');
                })
-             });
+             });    // End of Stock DB
+
+/*             Latest.updateOne(query,update,{upsert: true}).then(function(){   //upsert: bool - creates the object if it doesn't exist. defaults to false.
+
+         Latest.findOne(query).then(function(stock){
+           console.log('requery on DB:');
+         })
+       });    // End of Latest DB*/
+
+
        })
 
     });
