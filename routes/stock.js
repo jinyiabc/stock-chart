@@ -40,7 +40,7 @@ router.delete('/daily/:symbol',function(req,res,next){
                 };
   Stock.findOneAndRemove(query,).then(function(){   //upsert: bool - creates the object if it doesn't exist. defaults to false.
 
-      console.log('Delete on DB:');
+      console.log('Delete  in MongoDB');
       next();
   });
 

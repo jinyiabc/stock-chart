@@ -64,10 +64,14 @@ $(function () {
     // new Chart(ctx, config);
     console.log(typeof window.myLine);
     if (typeof window.myLine != "undefined") {
-      window.myLine.update();
+      window.myLine.destroy();
+      var ctx = document.getElementById('canvas').getContext('2d');
+     window.myLine =  new Chart(ctx, config);
+
       } else {
         var ctx = document.getElementById('canvas').getContext('2d');
-        window.newLine = new Chart(ctx, config);
+       window.myLine =  new Chart(ctx, config);
+      // getData();
       }
 
 
@@ -88,7 +92,7 @@ var config = {
     responsive: true,
     title: {
       display: true,
-      text: 'Chart.js Line Chart'
+      text: 'Stock Chart-FCC'
     },
     tooltips: {
       mode: 'index',
@@ -103,7 +107,7 @@ var config = {
         display: true,
         scaleLabel: {
           display: true,
-          labelString: 'Month'
+          labelString: 'Stocks'
         }
       }],
       yAxes: [{
@@ -116,7 +120,9 @@ var config = {
     }
   }
 };
-window.onload = function() {
+window.onload = getData();
+
+function getData() {
   $.get('http://localhost:3000/stock/daily',function(data){
     console.log(data);
     var length = data.length;
@@ -132,8 +138,13 @@ window.onload = function() {
                                   data: data[i]['ClosePrices'],
                                   fill: false,
                                 };
-     $('#stockList').append($('<button>')
-                    .text(data[i]['symbol']));
+     var elements = '<li class="list-group-item list-group-item-success">'+`${data[i]['symbol']}`+
+                      `<a href="#" id="${data[i]['symbol']}" class="btn">` +
+                          '<span class="glyphicon glyphicon-remove">' + '</span>' +
+                      '</a>'+
+                    '</li>';
+     $('#stockList').append($(elements));
+
 
     }
     config.data.labels = data[0]['labels'];
@@ -143,58 +154,48 @@ window.onload = function() {
 
   });
 };
-//
-// document.getElementById('GETDATA').addEventListener('click', function() {
-//   config.data.datasets.forEach(function(dataset) {
-//     dataset.data = dataset.data.map(function() {
-//       return randomScalingFactor();
-//     });
-//   });
-//   window.myLine.update();
-// });
 
-document.getElementById('addDataset').addEventListener('click', function() {
+// Add new stock to Socket
+$('#addDataset').on('click', function() {
   console.log('Button was clicked.');
 if($('#newStock').val()){
   var symbol = $('#newStock').val().toUpperCase();
   console.log(symbol);
   $.get(`http://localhost:3000/stock/daily/${symbol}`,function(data){
      console.log('Add new stock:',data['meta']['symbol']);
+
+     // API emit newdata to all browsers.
+
+
   });
-}
-  // var newDataset = {
-  //   label: 'Dataset ' + config.data.datasets.length,
-  //   backgroundColor: newColor,
-  //   borderColor: newColor,
-  //   data: [],
-  //   fill: false
-  // };
-  // for (var index = 0; index < config.data.labels.length; ++index) {
-  //   newDataset.data.push(randomScalingFactor());
-  // }
-  // config.data.datasets.push(newDataset);
-  // window.myLine.update();
+};
 });
-// document.getElementById('addData').addEventListener('click', function() {
-//   if (config.data.datasets.length > 0) {
-//     config.data.labels.push(month);
-//     config.data.datasets.forEach(function(dataset) {
-//       dataset.data.push(randomScalingFactor());
-//     });
-//     window.myLine.update();
-//   }
-// });
-document.getElementById('removeDataset').addEventListener('click', function() {
-  config.data.datasets.splice(0, 1);
-  window.myLine.update();
+
+
+
+// Remove specific stock through socket.io
+$('.list-group').on('click','span', function(event) {
+    var spanElement = event.target;
+    var symbol = $(spanElement).parent().attr("id");
+
+    time.emit('delete', {test:'test'}, function(response){
+      console.log(response);
+    });
+
+//Delete from MongoDB.
+    $.ajax({
+        url: `http://localhost:3000/stock/daily/${symbol}`,
+        type: 'DELETE',
+        success: function(){
+           console.log('Delete stock:',symbol,'from DB');
+           // getData();
+        }
+    });
 });
-document.getElementById('removeData').addEventListener('click', function() {
-  config.data.labels.splice(-1, 1); // remove the label first
-  config.data.datasets.forEach(function(dataset) {
-    dataset.data.pop();
-  });
-  window.myLine.update();
-});
+
+
+
+
 
 
 });

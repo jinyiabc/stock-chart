@@ -91,25 +91,30 @@ var time = io_redis
        cb(responseData);
       });
 
+      socket.on('delete', function (data,cb) {
+
+        // socket.broadcast.emit('getdata', data);
+        responseData = 'Acknowledgement:' + typeof(data) + data;
+        cb(responseData);
+      });
+
+
       socket.on('addstock',function(data){
-        console.log('add stock to MongoDB');
-       // Stock.insertMany(data).then(function(){
-       //   Storck.find({}).then(function(result){
-       //     console.log(result);
-       //   });
-       // })
-       const query = { 'symbol':data['symbol']}
-       const update = {
-                       $set:{'ClosePrices':data['ClosePrices'],'labels':data['labels']}
-                     };
-       Stock.updateOne(query,update,{upsert: true}).then(function(){   //upsert: bool - creates the object if it doesn't exist. defaults to false.
 
-         Stock.findOne(query).then(function(stock){
-           console.log('requery on DB:');
-         })
-       });
+             // socket.broadcast.emit('all',somedata);
 
-      })
+             console.log('add stock to MongoDB');
+             const query = { 'symbol':data['symbol']}
+             const update = {
+                             $set:{'ClosePrices':data['ClosePrices'],'labels':data['labels']}
+                           };
+             Stock.updateOne(query,update,{upsert: true}).then(function(){   //upsert: bool - creates the object if it doesn't exist. defaults to false.
+
+               Stock.findOne(query).then(function(stock){
+                 console.log('requery on DB:');
+               })
+             });
+       })
 
     });
 /**
