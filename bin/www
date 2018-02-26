@@ -7,7 +7,8 @@
 var app = require('../app');
 var debug = require('debug')('nightlife-express:server');
 var http = require('http');
-var Stock = require('../models/stocks')
+var Stock = require('../models/stocks');
+var request = require('request');
 /**
  * Get port from environment and store in Express.
  */
@@ -28,6 +29,17 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+setInterval( function(){
+  request
+  .get(process.env.APP_URL+'stock/daily')
+  .on('response', function(response) {
+    console.log(response.statusCode) // 200
+    console.log(response.headers['content-type']) // 'image/png'
+  })
+  // console.log('test for occurence');
+}, 1000*60);
+
 
 // var pub = require('redis').createClient(process.env.REDIS_URL);
 // pub.on('connect', function() {

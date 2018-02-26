@@ -123,8 +123,12 @@ var config = {
 window.onload = getData();
 
 function getData() {
-  $.get('http://localhost:3000/stock/daily',function(data){
-    console.log(data);
+  // $.get('http://localhost:3000/stock/daily',function(data){
+  //   console.log(data);
+    time.on('dataInitiation',function(data){
+
+
+
     var length = data.length;
     var colorNames = Object.keys(window.chartColors);
 
@@ -152,7 +156,8 @@ function getData() {
     var ctx = document.getElementById('canvas').getContext('2d');
     window.newLine = new Chart(ctx, config);
 
-  });
+  });  // End of socket data initialization.
+  // });
 };
 
 // Add new stock to Socket

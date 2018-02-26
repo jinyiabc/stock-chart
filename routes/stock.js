@@ -28,6 +28,7 @@ router.get('/daily/:symbol',function(req,res,next){
 
 router.get('/daily',function(req,res,next){
   Stock.find({}).then(function(data){
+    io.emit('dataInitiation',data);
     res.send(data);
   })
 });
