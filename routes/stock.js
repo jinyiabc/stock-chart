@@ -2,11 +2,19 @@ const express = require('express');
 const router = express.Router();
 const Stock = require('../models/stocks');
 const alpha = require('alphavantage')({ key: '2LSUS7X2UPKUPU2A' });
-// let client = require("redis").createClient(process.env.REDIS_URL);
+const client = require("redis").createClient(process.env.REDIS_URL);
+// const client = require('redis').createClient({
+//   host: '<your host>',
+//   port: 6379,
+//   password: '<your password>',
+// });
 
-var io = require('socket.io-emitter')({ host: '127.0.0.1', port: 6379 });
+// var io = require('socket.io-emitter')({ host: '127.0.0.1', port: 6379 });
+var io = require('socket.io-emitter')(client);
 
 
+// REDIS_URL=//localhost:6379
+//       redis://h:p62f43f3329d1858e2528480c0cca218de97701d21f7ecf3f11e4e3644fe9d2be@ec2-54-174-198-121.compute-1.amazonaws.com:26639
 // const symbol='MSFT'
 const interval='60min'
 const datatype='json'
