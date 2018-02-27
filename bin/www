@@ -89,11 +89,11 @@ setInterval( function(){
 
 var redis = require('socket.io-redis');
 var io = require('socket.io')(server);
-var io_redis = io.adapter(redis({
-    host: '127.0.0.1',
-    port: 6379
-}));
-
+// var io_redis = io.adapter(redis({
+//     host: '127.0.0.1',
+//     port: 6379
+// }));
+var io_redis = io.adapter(redis(process.env.REDIS_URL));
 // Custom namespaces
 var time = io_redis
     .on('connection',(socket) => {
