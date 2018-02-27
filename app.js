@@ -5,15 +5,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-var api = require('./routes/api');
+
 var stock = require('./routes/stock');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
 require('dotenv').load();
-var passport = require('./config/passport');
 
 var app = express();
 // connect to mongoDB
@@ -41,11 +38,7 @@ app.use(session({
   saveUninitialized: true
 }));
 
-// Initialize Passport and restore authentication state, if any, from the
-// session.
-app.use(passport.initialize());
-//uses persistent login sessions,
-app.use(passport.session());
+
 var path = process.cwd();
 
 
@@ -63,26 +56,11 @@ app.use('/home', function(req,res,next){
 app.use('/login',function(req,res,next){
   res.render('login')
 });
-app.get('/profile',
-  require('connect-ensure-login').ensureLoggedIn(),
-  function(req, res){
-    res.render('profile', { user: req.user });
-  });
 
-
-app.route('/auth/github')
-	.get(passport.authenticate('github'));
-
-app.route('/auth/github/callback')
-	.get(passport.authenticate('github', {
-		successRedirect: '/home',
-		failureRedirect: '/login'
-	}));
 
 
 
 // initialize the routes
-app.use('/api',api);
 app.use('/stock',stock);
 
 // catch 404 and forward to error handler
@@ -104,8 +82,3 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
-
-function homeAuthenticate(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/homeWithoutlogin')
-}

@@ -1,59 +1,35 @@
 $(function () {
 
-// Connected to custom namespace.
-  var chat = io('/chat');
-  var typing = io('/chat');
   var time = io();
-  // var subscriber = require("redis").createClient(process.env.REDIS_URL)
 
-  // $('#message').keypress(function(){
-  //   typing.emit('typing', handle.value);
-  // });
-  // $('#send').click(function(){
-  //   // Now that we are connected let's send our test call with callback
-  //   chat.emit('chat', {
-  //       message: message.value,
-  //       handle: handle.value
-  //   }, function(response){
-  //     console.log(response);
-  //   });
-  //   message.value = "";
-  // })
-
-
-  // Listen for events
-  // chat.on('chat', function(data){
-  //     feedback.innerHTML = '';
-  //     output.innerHTML += '<p><strong>' + data.handle + ': </strong>' + data.message + '</p>';
-  // });
-
-  typing.on('typing', function(data){
-      feedback.innerHTML = '<p><em>' + data + ' is typing a message...</em></p>';
-  });
-
+// Agent users update after delete single stock from other user.
   time.on('getdata',function(data){
     var symbol = data;
     var datasets = window.newLine.data.datasets.filter(dataset => dataset.label != symbol);
     window.newLine.data.datasets = datasets;
     window.newLine.update();
 
-    // var elements = '<li class="list-group-item list-group-item-success">'+`${symbol}`+
-    //                  `<a href="#" id="${symbol}" class="btn">` +
-    //                      '<span class="glyphicon glyphicon-remove">' + '</span>' +
-    //                  '</a>'+
-    //                '</li>';
-    // // $('#stockList').remove($(elements));
-    // $('#stockList').click(function(){
-    //   $(elements).remove();
-    // })
+    var labels = window.newLine.data.datasets.map(function(dataset){
+      return dataset.label;
+    })
 
-{/* <li class="list-group-item list-group-item-success">AAPL<a href="#" id="AAPL" class="btn"><span class="glyphicon glyphicon-remove"></span></a></li> */}
+    $('#stockList').empty();
+    var length = labels.length;
+    for ( var i=0; i< length; i++){
+     var elements = '<li class="list-group-item list-group-item-success">'+`${labels[i]}`+
+                      `<a href="#" id="${labels[i]}" class="btn">` +
+                          '<span class="glyphicon glyphicon-remove">' + '</span>' +
+                      '</a>'+
+                    '</li>';
+     $('#stockList').append($(elements));
 
+
+    }
   });
 
-// Receive OUTSOURCE from calling /stock/daily/:symbol
+// Receive new data from Alpha
 // Then emit to server.
-// Then server emit to all clients.
+// Then server SAVE to DB.
   time.on('time', function (data) {
     // Emit acknowledgement
     time.emit('ack', data ,function(response){
@@ -81,9 +57,7 @@ $(function () {
   // new symbol => close prices & labels
     config.data.datasets = (config.data.datasets).concat(newDataset);
     config.data.labels = labels;
-    // console.log(config.data.labels);
-    // var ctx = document.getElementById('canvas').getContext('2d');
-    // new Chart(ctx, config);
+
     console.log(typeof window.newLine);
     if (typeof window.newLine != "undefined") {
       window.newLine.data.datasets = config.data.datasets;
@@ -95,7 +69,13 @@ $(function () {
       // getData();
       }
 
-
+      var elements = '<li class="list-group-item list-group-item-success">'+`${newDataset.label}`+
+                       `<a href="#" id="${newDataset.label}" class="btn">` +
+                           '<span class="glyphicon glyphicon-remove">' + '</span>' +
+                       '</a>'+
+                     '</li>';
+      $('#stockList').append($(elements));
+   // Emit to server then save to MongoDB
     time.emit('addstock',{"symbol":data['meta']['symbol']
                           ,"labels":labels
                           ,"ClosePrices": ClosePrices });
@@ -143,12 +123,9 @@ var config = {
 };
 window.onload = getData();
 
+// Every agent user will initiate the Chart.
 function getData() {
   $.get('http://localhost:3000/stock/daily',function(data){
-  //   console.log(data);
-
-
-
     var length = data.length;
     var colorNames = Object.keys(window.chartColors);
 
@@ -186,22 +163,11 @@ $('#addDataset').on('click', function() {
 if($('#newStock').val()){
   var symbol = $('#newStock').val().toUpperCase();
   console.log(symbol);
-
-
-   var elements = '<li class="list-group-item list-group-item-success">'+`${symbol}`+
-                    `<a href="#" id="${symbol}" class="btn">` +
-                        '<span class="glyphicon glyphicon-remove">' + '</span>' +
-                    '</a>'+
-                  '</li>';
-   $('#stockList').append($(elements));
-
-
+// Clear the input area.
+   $('#newStock').val('') ;
+// Request from API endpoint where 'broadcast' to all agent users.
   $.get(`http://localhost:3000/stock/daily/${symbol}`,function(data){
      console.log('Add new stock:',data['meta']['symbol']);
-
-     // API emit newdata to all browsers.
-
-
   });
 };
 });
@@ -218,12 +184,6 @@ $('.list-group').on('click','span', function(event) {
     console.log(window.newLine.data.datasets);
 
     window.newLine.update();
-
-    // var elements = '<li class="list-group-item list-group-item-success">'+`${symbol}`+
-    //                  `<a href="#" id="${symbol}" class="btn">` +
-    //                      '<span class="glyphicon glyphicon-remove">' + '</span>' +
-    //                  '</a>'+
-    //                '</li>';
     $('#stockList').empty();
     var length = datasets.length;
     for ( var i=0; i< length; i++){
@@ -236,8 +196,7 @@ $('.list-group').on('click','span', function(event) {
 
 
     }
-
-
+// Emit to server then server emit to all agent users.
     time.emit('delete', symbol, function(response){
       console.log(response);
     });

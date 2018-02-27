@@ -8,7 +8,6 @@ var app = require('../app');
 var debug = require('debug')('nightlife-express:server');
 var http = require('http');
 var Stock = require('../models/stocks');
-var Latest = require('../models/latest');
 var async = require('async');
 const alpha = require('alphavantage')({ key: '2LSUS7X2UPKUPU2A' });
 var request = require('request');
@@ -96,30 +95,6 @@ var io_redis = io.adapter(redis({
 }));
 
 // Custom namespaces
-var chat = io_redis
-  .of('/chat')
-  .on('connection', (socket) => {
-
-    debug('made socket connection', socket.id);
-    socket.on('disconnect', function(){
-      console.log('user disconnected');
-    });
-
-    // Handle chat event
-    socket.on('chat', function(data,callback){
-      // the client passes 'callback' as a function. When we invoke the callback on the server
-      // the code on the client side will run
-        responseData = 'Acknoledgement:'+ JSON.stringify(data,null,4);
-        callback(responseData);
-        chat.emit('chat', data);
-    });
-    // Handle typing event
-    socket.on('typing', function(data){
-        socket.broadcast.emit('typing', data);
-
-    });
-});
-
 var time = io_redis
     .on('connection',(socket) => {
 
@@ -137,9 +112,6 @@ var time = io_redis
 
 
       socket.on('addstock',function(data){
-        // Broadcast to all agents( API have broadcasted)
-             // socket.broadcast.emit('all',data);
-
              console.log('add stock to MongoDB');
              const query = { 'symbol':data['symbol']}
              const update = {
@@ -151,15 +123,6 @@ var time = io_redis
                  console.log('requery on DB:');
                })
              });    // End of Stock DB
-
-/*             Latest.updateOne(query,update,{upsert: true}).then(function(){   //upsert: bool - creates the object if it doesn't exist. defaults to false.
-
-         Latest.findOne(query).then(function(stock){
-           console.log('requery on DB:');
-         })
-       });    // End of Latest DB*/
-
-
        })
 
     });

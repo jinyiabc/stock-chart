@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Stock = require('../models/stocks');
-const Latest = require('../models/latest');
 const alpha = require('alphavantage')({ key: '2LSUS7X2UPKUPU2A' });
 // let client = require("redis").createClient(process.env.REDIS_URL);
 
@@ -29,18 +28,10 @@ router.get('/daily/:symbol',function(req,res,next){
 
 router.get('/daily',function(req,res,next){
   Stock.find({}).then(function(data){
-
-    // io.emit('dataInitiation',data);
     res.send(data);
   })
 });
 
-// router.get('/latest',function(req,res,next){
-//   Latest.find({}).then(function(data){
-//     // console.log(data);
-//     res.send(data);
-//   })
-// });
 
 router.delete('/daily/:symbol',function(req,res,next){
 
