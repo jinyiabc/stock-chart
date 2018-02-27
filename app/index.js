@@ -186,6 +186,16 @@ $('#addDataset').on('click', function() {
 if($('#newStock').val()){
   var symbol = $('#newStock').val().toUpperCase();
   console.log(symbol);
+
+
+   var elements = '<li class="list-group-item list-group-item-success">'+`${symbol}`+
+                    `<a href="#" id="${symbol}" class="btn">` +
+                        '<span class="glyphicon glyphicon-remove">' + '</span>' +
+                    '</a>'+
+                  '</li>';
+   $('#stockList').append($(elements));
+
+
   $.get(`http://localhost:3000/stock/daily/${symbol}`,function(data){
      console.log('Add new stock:',data['meta']['symbol']);
 
@@ -214,7 +224,18 @@ $('.list-group').on('click','span', function(event) {
     //                      '<span class="glyphicon glyphicon-remove">' + '</span>' +
     //                  '</a>'+
     //                '</li>';
-    // $(elements,'#stockList').remove();
+    $('#stockList').empty();
+    var length = datasets.length;
+    for ( var i=0; i< length; i++){
+     var elements = '<li class="list-group-item list-group-item-success">'+`${datasets[i]['label']}`+
+                      `<a href="#" id="${datasets[i]['label']}" class="btn">` +
+                          '<span class="glyphicon glyphicon-remove">' + '</span>' +
+                      '</a>'+
+                    '</li>';
+     $('#stockList').append($(elements));
+
+
+    }
 
 
     time.emit('delete', symbol, function(response){
