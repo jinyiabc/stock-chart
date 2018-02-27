@@ -125,7 +125,7 @@ window.onload = getData();
 
 // Every agent user will initiate the Chart.
 function getData() {
-  $.get('http://localhost:3000/stock/daily',function(data){
+  $.get('https://stock-chart-fcc.herokuapp.com/stock/daily',function(data){
     var length = data.length;
     var colorNames = Object.keys(window.chartColors);
 
@@ -166,7 +166,7 @@ if($('#newStock').val()){
 // Clear the input area.
    $('#newStock').val('') ;
 // Request from API endpoint where 'broadcast' to all agent users.
-  $.get(`http://localhost:3000/stock/daily/${symbol}`,function(data){
+  $.get(`https://stock-chart-fcc.herokuapp.com/stock/daily/${symbol}`,function(data){
      console.log('Add new stock:',data['meta']['symbol']);
   });
 };
@@ -203,7 +203,7 @@ $('.list-group').on('click','span', function(event) {
 
 //Delete from MongoDB.
     $.ajax({
-        url: `http://localhost:3000/stock/daily/${symbol}`,
+        url: `https://stock-chart-fcc.herokuapp.com/stock/daily/${symbol}`,
         type: 'DELETE',
         success: function(){
            console.log('Delete stock:',symbol,'from DB');
